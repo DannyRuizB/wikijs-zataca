@@ -1,0 +1,15 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Docker / runtime data
+*.tar
+*.tar.gz
+
+# Editor / OS noise
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
