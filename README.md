@@ -48,6 +48,8 @@ wikijs-zataca/
 ├── .env.example            # plantilla de variables (sin secretos)
 ├── nginx/
 │   └── default.conf        # vhost de Nginx que hace proxy_pass a wiki:3000
+├── scripts/
+│   └── reset-pass.sh       # reset de password del admin (bcrypt + psql)
 ├── .gitignore
 ├── LICENSE                 # MIT
 └── README.md
@@ -74,22 +76,20 @@ docker-compose down -v
 
 ## Reset de la contraseña de admin
 
-Si pierdes la contraseña del usuario administrador, puedes regenerar el hash
-desde dentro del contenedor de Wiki.js y aplicarlo a la BD:
+Si pierdes la contraseña del usuario administrador, hay un script que
+regenera el hash bcrypt dentro del contenedor de Wiki.js y lo aplica a la BD:
 
 ```bash
-EMAIL="tu.email@example.com"
-read -srp "Nueva password: " NEW_PASS; echo
+# Pide email y password por teclado
+./scripts/reset-pass.sh
 
-HASH=$(docker exec -e NEW_PASS="$NEW_PASS" wikijs-app \
-  node -e 'console.log(require("bcryptjs").hashSync(process.env.NEW_PASS, 12))')
-
-PGPASS=$(grep POSTGRES_PASSWORD .env | cut -d= -f2)
-
-docker exec -e PGPASSWORD="$PGPASS" wikijs-db \
-  psql -U wikijs -d wikijs -c \
-  "UPDATE users SET password='$HASH' WHERE email='$EMAIL';"
+# O pasa el email como argumento
+./scripts/reset-pass.sh admin@example.com
 ```
+
+El script valida que el usuario existe antes de actualizar y exige
+confirmación de la nueva password. Debe ejecutarse desde la raíz del repo,
+con `wikijs-app` y `wikijs-db` corriendo y un `.env` válido en el directorio.
 
 ## Contexto
 
